@@ -21,16 +21,16 @@ class ModalConfirmation extends Component{
     render() {
         return (
             <React.Fragment>
-                <Button color="danger" onClick={this.toggle}>Ver Términos y Condiciones</Button>
+                <Button onClick={this.toggle} color='secondary'>Terms and Conditions</Button>
                 <Modal isOpen={this.state.modal} modalTransition={{ timeout: 700 }} backdropTransition={{ timeout: 1300 }}
                        toggle={this.toggle} className={this.props.className}>
                     <ModalHeader toggle={this.toggle}>Confirmación de T&C</ModalHeader>
                     <ModalBody>
-                        ¿Estas seguro que deseas continuar? Al clickear en "Sí" estarás aceptando nuestros Terminos y Condiciones de uso de nuestras aplicaciones.
+                        Are you sure you want to continue? Clicking 'Yes' results nothing, I just wanted to use a Reactstrap Modal.
                     </ModalBody>
                     <ModalFooter>
-                        <Button color="primary" onClick={this.toggle}>Sí</Button>{' '}
-                        <Button color="secondary" onClick={this.toggle}>Cancelar</Button>
+                        <Button color="primary" onClick={this.toggle}>Yes</Button>{' '}
+                        <Button color="secondary" onClick={this.toggle}>Cancel</Button>
                     </ModalFooter>
                 </Modal>
             </React.Fragment>

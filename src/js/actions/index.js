@@ -13,3 +13,17 @@ export const getUsers = () => dispatch => {
         payload: 'Give me all users'
     })
 }
+
+export const removeUser = user => dispatch => {
+    dispatch({
+        type: actionTypes.REMOVE_USER,
+        payload: user
+    })
+}
+
+export const updateUser = user => dispatch => {
+    dispatch({
+        type: actionTypes.UPDATE_USER,
+        payload: user
+    })
+}
