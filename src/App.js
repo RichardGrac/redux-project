@@ -3,6 +3,7 @@ import logo from './logo.svg';
 import './App.css';
 import UserForm from "./components/Form/form.jsx";
 import UserList from "./components/UserList/userlist";
+import Footer from "./components/Footer/footer";
 
 
 class App extends Component {
@@ -52,6 +53,7 @@ class App extends Component {
                     handleChange={(e) => this.handleChange(e)}
                     overrideUser={this.overrideUser}/>
           <UserList overrideUser={this.overrideUser} />
+          <Footer />
       </div>
     );
   }
