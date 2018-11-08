@@ -2,41 +2,91 @@ import React, {Component} from 'react'
 import {Table, Container, Button} from 'reactstrap'
 import { connect } from "react-redux"
 import { bindActionCreators } from 'redux'
-import * as actionTypes from '../../js/actions'
+import './userlist.css'
+import {getUsers, removeUser, updateUser} from '../../js/actions'
+import UserRow from './components/UserRow/userRow'
+import UserRowExpanded from './components/UserRowExpended/userRowExpanded'
 
 
 class UserList extends Component {
 
     constructor(props) {
-
         super(props)
-        const { dispatch } = props
-        this.boundActionCreators = bindActionCreators(actionTypes, dispatch)
-        this.boundActionCreators.getUsers()
-
         this.state = {
-            selectedUsers: []
+            selectedUsers: [],
+            users: [],
+            expandedRowsByUserId: ['asxs73an']
         }
-
     }
 
-    addUserToSelected = (event, userIdSearched) => {
-        const userIndex = this.state.selectedUsers.indexOf(userIdSearched);
-        if (userIndex === -1){
-            this.setState(prevState => {
-                prevState.selectedUsers.push(userIdSearched)
-            });
-        }else{
-            this.setState(prevState => {
-                prevState.selectedUsers.splice(userIndex, 1)
-            });
+    componentDidMount(){
+        // this.props.getUsers()
+    }
+
+    componentWillReceiveProps(nextProps) {
+        console.log('nextProps: ', nextProps)
+    }
+
+    addUserToSelected = (event, userSearched) => {
+        // const userIndex = this.state.selectedUsers.indexOf(userSearched.id);
+        // if (userIndex === -1){
+        //     this.setState(prevState => {
+        //         prevState.selectedUsers.push(userSearched.id)
+        //     });
+        // }else{
+        //     this.setState(prevState => {
+        //         prevState.selectedUsers.splice(userIndex, 1)
+        //     });
+        // }
+
+        const userModified = {
+            ...userSearched,
+            printUser: !userSearched.printUser
         }
+        this.props.updateUser(userModified)
     }
 
     printSelected () {
-        const usersIds = this.state.selectedUsers.join(',')
-        const url = `/cPrintSelectedItems?usersIds=${usersIds}`
+        const userIds = this.state.users
+            .filter(user => {
+                return user.printUser === true
+            })
+            .map(user => user.id).join(',')
+        const url = `/cPrintSelectedItems?usersIds=${userIds}`
         window.open(url, 'Users Window', 'width=730,height=650')
+    }
+
+    onHandleExpand = user => {
+        const userIndex = this.state.expandedRowsByUserId.indexOf(user.id);
+        if (userIndex === -1){
+            this.setState(prevState => {
+                prevState.expandedRowsByUserId.push(user.id)
+            }, () => this.forceUpdate());
+        } else {
+            this.setState(prevState => {
+                prevState.expandedRowsByUserId.splice(userIndex, 1)
+            }, () => this.forceUpdate());
+        }
+    }
+
+    renderRows = () => {
+        let itemRows = []
+        this.props.users.forEach((user, i) => {
+            itemRows = itemRows.concat(
+                <UserRow user={user}
+                         index={i}
+                         onHandleExpand={this.onHandleExpand}
+                         addUserToSelected={this.addUserToSelected}
+                         onDeleteUser={this.onDeleteUser}
+                         onOverrideUser={this.onOverrideUser}
+                />
+            )
+
+            if (this.state.expandedRowsByUserId.indexOf(user.id) > -1){
+                itemRows = itemRows.concat(this.getExpandedRow(user))
+            }
+        })
+        return itemRows
     }
 
     render() {
@@ -46,8 +96,7 @@ class UserList extends Component {
                     <h1 className='text-left mb-3'>
                         Current Users Up
                     </h1>
-                    <input type="checkbox"/>
-                    {this.props.UsersReducer.users.length === 0 ?
+                    {this.props.users.length === 0 ?
                         (<h2 style={{color: 'grey', textAlign: 'center', marginBottom: '40px', border: '1px solid #f5f5f5', borderRadius: '5px', padding: '5px'}}>
                             There are no users registered.</h2> )
                         : (
@@ -68,26 +117,7 @@ class UserList extends Component {
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    {this.props.UsersReducer.users.map((user,index) => (
-                                        <tr key={user.id}>
-                                            <td><input type="checkbox" onChange={(e) => this.addUserToSelected(e, user.id)}/></td>
-                                            <th scope="row">#{index+1}</th>
-                                            <td>{user.email}</td>
-                                            <td>{user.userType}</td>
-                                            <td>{user.description}</td>
-                                            <td>{user.receiveEmail ? 'Yes' : 'No'}</td>
-                                            <td>
-                                                <Button color='danger' className='m-1'
-                                                        onClick={(event) => this.onDeleteUser(event, user)}>
-                                                    Delete
-                                                </Button>
-                                                <Button color='secondary'
-                                                        onClick={(event) => this.onOverrideUser(event, user)}>
-                                                    Modify
-                                                </Button>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                        {this.renderRows()}
                                     </tbody>
                                 </Table>
                             </div>
@@ -99,8 +129,12 @@ class UserList extends Component {
         );
     }
 
+    getExpandedRow = (user) => {
+        return <UserRowExpanded user={user} />
+    }
+
     onDeleteUser = (e, user) => {
-        this.boundActionCreators.removeUser(user)
+        this.props.removeUser(user)
     }
 
     onOverrideUser = (e, user) => {
@@ -108,9 +142,20 @@ class UserList extends Component {
     }
 }
 
-const mapStateToProps = state => ({
-    ...state
-})
+export const actionCreators = {
+    getUsers,
+    updateUser,
+    removeUser
+}
 
-UserList = connect(mapStateToProps)(UserList)
-export default UserList;
+export const mapDispatchToProps = dispatch => {
+    return bindActionCreators(actionCreators, dispatch)
+}
+
+export const mapStateToProps = state => {
+    return {
+        users: state.usersData.users
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(UserList);
